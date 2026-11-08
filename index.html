@@ -1,0 +1,999 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Infraestructura de casa</title>
+<meta name="theme-color" content="#1b2230">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icono-fuente.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icono-apple.png">
+<style>
+/* Ficha técnica: pestañas; cuadro como filas de carril DIN; plano con marcas tocables por capas de sistema */
+:root{
+  --bg:#f3f4f6; --panel:#ffffff; --fg:#1b2230; --muted:#5d6676; --line:#d9dde4;
+  --accent:#d98a00; --accent-soft:#fff3db; --ink-accent:#8a5600;
+  --iga:#1f4fa3; --dif:#6a3fa0; --free:#9aa1ad; --warn:#b3261e; --warn-soft:#fde8e6;
+  --c13:#1f6fd1; --c15:#d0362b; --c17:#8a3fd1; --c19:#1b8a4a; --c21:#d98a00; --cx:#0f7f86;
+  --box:#2b3445; --unk:#c62828; --dud:#c77700; --ok:#2e7d4f;
+  --s-ele:#d98a00; --s-cal:#d0362b; --s-agu:#1f6fd1; --s-san:#8a5a2b; --s-gas:#a07800;
+  --s-dat:#0f7f86; --s-cli:#7a4fd1; --s-seg:#c2185b; --s-otr:#5d6676;
+  --plan-filter:none;
+  --display:"IBM Plex Sans Condensed","Roboto Condensed","Arial Narrow",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12161d; --panel:#1b212b; --fg:#e7eaf0; --muted:#9aa3b2; --line:#2c3441;
+  --accent:#f0a52a; --accent-soft:#33280f; --ink-accent:#f6c46f;
+  --iga:#7ea6f0; --dif:#b79ae6; --free:#6b7383; --warn:#f2867c; --warn-soft:#3a1d1b;
+  --box:#dfe4ec; --unk:#ff6b61; --dud:#f2b443; --ok:#5cc28a;
+  --s-ele:#f0a52a; --s-cal:#ff7a6b; --s-agu:#6aa8ff; --s-san:#c99868; --s-gas:#e0bb3a;
+  --s-dat:#3cc6cf; --s-cli:#b79ae6; --s-seg:#f06aa0; --s-otr:#9aa3b2;
+  --plan-filter:invert(.88) hue-rotate(180deg); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12161d; --panel:#1b212b; --fg:#e7eaf0; --muted:#9aa3b2; --line:#2c3441;
+  --accent:#f0a52a; --accent-soft:#33280f; --ink-accent:#f6c46f;
+  --iga:#7ea6f0; --dif:#b79ae6; --free:#6b7383; --warn:#f2867c; --warn-soft:#3a1d1b;
+  --box:#dfe4ec; --unk:#ff6b61; --dud:#f2b443; --ok:#5cc28a;
+  --s-ele:#f0a52a; --s-cal:#ff7a6b; --s-agu:#6aa8ff; --s-san:#c99868; --s-gas:#e0bb3a;
+  --s-dat:#3cc6cf; --s-cli:#b79ae6; --s-seg:#f06aa0; --s-otr:#9aa3b2;
+  --plan-filter:invert(.88) hue-rotate(180deg); color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--display);font-size:15px;line-height:1.4}
+[hidden]{display:none!important}
+.wrap{max-width:900px;margin:0 auto;padding-block:max(14px,env(safe-area-inset-top,0px)) 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 16px;margin-bottom:10px}
+h1{font-size:1.5rem;font-weight:700;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--muted);font-size:.85rem;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sub .err{color:var(--warn)}
+.ver{font:600 .7rem var(--mono);border:1px solid var(--line);border-radius:4px;padding:1px 5px;background:var(--panel);color:var(--muted);cursor:pointer}
+.ver.new{background:var(--accent);color:#1b1300;border-color:var(--accent)}
+.tabs{display:flex;gap:2px;border-bottom:2px solid var(--line);margin-bottom:14px;overflow-x:auto;scrollbar-width:none}
+.tab{appearance:none;border:0;background:none;color:var(--muted);font:600 .95rem var(--display);padding:9px 11px;border-bottom:3px solid transparent;margin-bottom:-2px;cursor:pointer;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--fg);border-color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.bar input[type=search]{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--fg);font:inherit}
+.btn{appearance:none;border:1px solid var(--line);background:var(--panel);color:var(--fg);font:600 .9rem var(--display);padding:8px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-block}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#1b1300}
+.btn.danger{color:var(--warn);border-color:var(--warn)}
+.btn.small{padding:4px 8px;font-size:.8rem}
+.btn:disabled{opacity:.5;cursor:default}
+.status{font-size:.88rem;color:var(--muted);padding:10px 0}
+.status.err{color:var(--warn)}
+.status.ok{color:var(--ok)}
+/* Bienvenida */
+.hero{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px;display:flex;flex-direction:column;gap:12px;max-width:560px;margin:30px auto}
+.hero h2{margin:0;font-size:1.3rem}
+.hero p{margin:0;color:var(--muted)}
+.hero .row-b{display:flex;gap:8px;flex-wrap:wrap}
+/* Cuadro */
+.rows{display:flex;flex-direction:column;gap:6px}
+.row{display:grid;grid-template-columns:74px 1fr auto;gap:6px 10px;align-items:start;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px 12px}
+.pos{font:600 .95rem var(--mono);font-variant-numeric:tabular-nums;padding:3px 0 3px 8px;border-left:4px solid var(--accent)}
+.row[data-tipo="IGA"] .pos{border-color:var(--iga)}
+.row[data-tipo="Diferencial"] .pos{border-color:var(--dif)}
+.row[data-tipo="Libre"] .pos{border-color:var(--free);color:var(--muted)}
+.desc{min-width:0}
+.desc strong{font-weight:600;display:block}
+.desc .note{color:var(--muted);font-size:.86rem;margin-top:2px;display:block}
+.meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.pill{font:600 .7rem var(--display);text-transform:uppercase;letter-spacing:.06em;padding:2px 7px;border-radius:999px;background:var(--bg);color:var(--muted);white-space:nowrap}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.amb{background:var(--accent-soft);color:var(--ink-accent)}
+.edit{appearance:none;border:0;background:none;color:var(--ink-accent);font:600 .8rem var(--display);cursor:pointer;padding:2px 0}
+.where{grid-column:2/4;display:flex;flex-wrap:wrap;gap:6px}
+.goplan{appearance:none;font:600 .8rem var(--display);color:var(--fg);background:var(--accent-soft);border:1px solid transparent;border-radius:4px;padding:3px 8px;cursor:pointer}
+.goplan:hover{border-color:var(--accent)}
+.legendkey{display:flex;gap:10px;flex-wrap:wrap;font-size:.8rem;color:var(--muted);margin:4px 0 12px}
+.legendkey i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+/* Plano */
+.floors{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.fchip{appearance:none;display:flex;gap:6px;align-items:center;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:999px;padding:5px 10px 5px 6px;font:600 .85rem var(--display);cursor:pointer;text-align:left}
+.fchip .dot{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;color:#fff;font:600 .68rem var(--mono)}
+.fchip small{font-weight:400;color:var(--muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fchip[aria-pressed="true"]{border-color:var(--fg);box-shadow:0 0 0 1px var(--fg)}
+.planbox{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:auto;max-height:78vh;position:relative}
+.plan{position:relative;width:100%;margin:0 auto;user-select:none;-webkit-user-select:none;min-height:120px}
+.plan.z2{width:200%}
+.plan img{display:block;width:100%;max-width:none;filter:var(--plan-filter)}
+.plan .noplan{padding:40px 16px;text-align:center;color:var(--muted)}
+.plan.placing{cursor:crosshair}
+.mk{position:absolute;transform:translate(-50%,-50%);width:28px;height:28px;border-radius:50%;border:2px solid #fff;color:#fff;font:600 .72rem var(--mono);display:grid;place-items:center;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.45);padding:0;transition:opacity .15s,transform .15s;z-index:2}
+.plan.z2 .mk{width:34px;height:34px;font-size:.8rem}
+.mk.dim{opacity:.18}
+.mk.hit{transform:translate(-50%,-50%) scale(1.35);z-index:5}
+.mk.sel{outline:3px solid var(--fg);outline-offset:2px;z-index:6}
+.rb{position:absolute;transform:translate(-50%,-50%);min-width:30px;height:22px;padding:0 4px;border-radius:3px;background:var(--panel);color:var(--box);border:2px solid var(--box);font:600 .64rem var(--mono);display:grid;place-items:center;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.35);z-index:3}
+.plan.z2 .rb{height:26px;font-size:.74rem}
+.rb.has-unk{border-color:var(--unk);color:var(--unk)}
+.rb.has-dud{border-color:var(--dud)}
+.bdg{position:absolute;top:-8px;right:-8px;min-width:16px;height:16px;border-radius:8px;background:var(--unk);color:#fff;font:600 .6rem var(--mono);display:grid;place-items:center;padding:0 3px}
+.bdg.amb{background:var(--dud)}
+.rb.sel,.el.sel{outline:3px solid var(--accent);outline-offset:2px;z-index:6}
+.el{position:absolute;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:7px;border:2.5px solid var(--sc);background:var(--panel);display:grid;place-items:center;font-size:15px;line-height:1;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.4);padding:0;z-index:4;color:var(--fg)}
+.plan.z2 .el{width:36px;height:36px;font-size:18px}
+.el.hit{transform:translate(-50%,-50%) scale(1.35)}
+.links{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+.links line{stroke-width:1.8;vector-effect:non-scaling-stroke}
+.links line.caja{stroke:var(--box);stroke-dasharray:4 3;opacity:.55}
+.links line.sys{opacity:.85}
+.links line.d1{stroke-dasharray:7 4}
+.links line.d2{stroke-dasharray:2 3}
+.planhead{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.hint{font-size:.85rem;color:var(--muted)}
+.placebar{background:var(--accent-soft);color:var(--ink-accent);border-radius:6px;padding:8px 10px;font-size:.9rem;display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:8px}
+.rooms{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px;margin-top:12px}
+.room{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 10px;min-width:0;text-align:left;font:inherit;color:inherit;cursor:pointer;appearance:none}
+.room:hover{border-color:var(--accent)}
+.room b{display:block;font-weight:600;margin-bottom:4px}
+.room .dots{display:flex;gap:4px;flex-wrap:wrap}
+.room .dots span{font:600 .7rem var(--mono);color:#fff;border-radius:3px;padding:1px 5px}
+.room .dots em{font-style:normal;font-size:.85rem}
+.layers{display:flex;gap:4px;flex-wrap:wrap}
+.seg{appearance:none;border:1px solid var(--line);background:var(--panel);color:var(--muted);font:600 .82rem var(--display);padding:6px 10px;border-radius:6px;cursor:pointer;display:inline-flex;gap:5px;align-items:center}
+.seg[aria-pressed="true"]{color:var(--fg);border-color:var(--fg)}
+.seg i{display:inline-block;width:10px;height:10px;border-radius:2px}
+.tray{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px;font-size:.85rem;color:var(--muted)}
+.tray button{font:600 .78rem var(--mono)}
+/* Conductores y pendientes */
+.cond{border-top:1px solid var(--line);padding:8px 0;display:flex;flex-direction:column;gap:3px;text-align:left;background:none;border-left:0;border-right:0;border-bottom:0;color:inherit;font:inherit;cursor:pointer;width:100%}
+.cond:hover .route{color:var(--ink-accent)}
+.cond .top{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.route{font:500 .8rem var(--mono);color:var(--muted);overflow-wrap:anywhere}
+.st{font:600 .66rem var(--display);text-transform:uppercase;letter-spacing:.06em;padding:2px 6px;border-radius:999px;color:#fff;white-space:nowrap}
+.st.desconocido,.st.averia,.st.vencida{background:var(--unk)}
+.st.dudoso,.st.revisar,.st.pronto{background:var(--dud)}
+.st.conocido,.st.ok{background:var(--ok)}
+.ty{font:600 .66rem var(--display);text-transform:uppercase;letter-spacing:.06em;padding:1px 6px;border-radius:4px;border:1px solid var(--line);color:var(--muted)}
+.linkto{appearance:none;border:0;background:none;color:var(--ink-accent);font:600 .8rem var(--mono);cursor:pointer;padding:0}
+.aviso{background:var(--warn-soft);color:var(--warn);border-radius:6px;padding:8px 10px;font-size:.88rem}
+.sum{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.sum .k{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 12px;display:flex;flex-direction:column;min-width:110px;text-align:left;font:inherit;color:inherit}
+button.k{cursor:pointer;appearance:none}
+button.k[aria-pressed="true"]{border-color:var(--fg);box-shadow:0 0 0 1px var(--fg)}
+.sum .k b{font:600 1.4rem var(--mono);font-variant-numeric:tabular-nums}
+.sum .k span{font-size:.78rem;color:var(--muted)}
+.sum .k.unk b{color:var(--unk)} .sum .k.dud b{color:var(--dud)}
+.grp{margin-bottom:14px}
+.grp h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 6px;display:flex;gap:6px;align-items:center}
+.pend{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:4px 12px;margin-bottom:6px}
+.pend header{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;margin:0}
+.pend header b{font:600 .95rem var(--mono)}
+/* Sistemas y mantenimiento */
+.item{display:grid;grid-template-columns:36px 1fr auto;gap:4px 10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sc,var(--line));border-radius:6px;padding:8px 10px;width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer;appearance:none;margin-bottom:6px}
+.item:hover{border-color:var(--sc,var(--accent))}
+.item .ico{font-size:20px;text-align:center}
+.item .t{min-width:0}
+.item .t b{display:block;font-weight:600}
+.item .t small{color:var(--muted);font-size:.84rem;display:block}
+.item .r{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.log{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 12px;margin-bottom:6px;display:grid;grid-template-columns:auto 1fr auto;gap:2px 12px;text-align:left;font:inherit;color:inherit;width:100%;cursor:pointer;appearance:none}
+.log .d{font:600 .82rem var(--mono);color:var(--muted);white-space:nowrap}
+.log .x{min-width:0}
+.log .x small{display:block;color:var(--muted);font-size:.82rem}
+.log .c{font:600 .85rem var(--mono);white-space:nowrap}
+/* Ajustes */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.card h2{margin:0;font-size:1.05rem}
+.floor{display:grid;grid-template-columns:64px 1fr auto;gap:10px;align-items:center;border-top:1px solid var(--line);padding-top:10px}
+.floor img,.floor .ph{width:64px;height:48px;object-fit:cover;border-radius:4px;border:1px solid var(--line);background:var(--bg);filter:var(--plan-filter)}
+.floor .bt{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+/* Editor */
+.scrim{position:fixed;inset:0;background:rgba(10,14,20,.45);z-index:20}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--panel);border-top:3px solid var(--accent);border-radius:12px 12px 0 0;max-height:88%;overflow:auto;
+  padding-block:16px calc(16px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sheet .in{max-width:620px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.sheet h2{margin:0;font-size:1.15rem}
+.sheet h3{margin:6px 0 0;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.field input,.field select,.field textarea{padding:9px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);font:inherit;width:100%;min-width:0}
+.field textarea{min-height:60px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.check{display:flex;gap:8px;align-items:center;font-size:.9rem}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between;margin-top:4px}
+.actions div{display:flex;gap:8px;flex-wrap:wrap}
+.confirm{background:var(--warn-soft);color:var(--warn);border-radius:6px;padding:8px 10px;font-size:.88rem;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fotos{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.foto{position:relative;width:72px;height:72px;border-radius:6px;overflow:hidden;border:1px solid var(--line);background:var(--bg);padding:0;cursor:pointer}
+.foto img{width:100%;height:100%;object-fit:cover;display:block}
+.foto .rm{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font:600 .75rem var(--display);cursor:pointer;display:grid;place-items:center;padding:0}
+.addfoto{width:72px;height:72px;border:1px dashed var(--muted);border-radius:6px;display:grid;place-items:center;color:var(--muted);cursor:pointer;font-size:.8rem;text-align:center}
+.addfoto input{display:none}
+.lb{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.92);display:grid;place-items:center;padding:16px}
+.lb img{max-width:100%;max-height:100%;object-fit:contain}
+.lb button{position:absolute;top:max(12px,env(safe-area-inset-top,0px));right:16px}
+@media (max-width:480px){.row{grid-template-columns:62px 1fr}.meta{grid-column:2;flex-direction:row;align-items:center;justify-content:flex-start;flex-wrap:wrap}.where{grid-column:1/3}.grid2{grid-template-columns:1fr}.log{grid-template-columns:auto 1fr}.log .c{grid-column:2}}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}}}
+@media (prefers-reduced-motion:reduce){.mk{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1 id="titulo">Infraestructura de casa</h1>
+    <span class="sub"><span id="sync">Sin carpeta</span><button class="ver" id="ver" hidden></button></span>
+  </header>
+  <nav class="tabs" role="tablist" id="tabs" hidden></nav>
+  <div id="status" class="status" hidden></div>
+  <main id="view"></main>
+</div>
+<div id="editor" hidden></div>
+<div id="lightbox" hidden></div>
+<script>
+'use strict';
+(function () {
+  /* ---------- catálogo de sistemas ---------- */
+  // Electricidad tiene además su propio modelo (cuadro, puntos, registros, conductores); estos "equipos"
+  // son lo que no encaja ahí: un inversor, un cargador, una toma de tierra…
+  const SISTEMAS = {
+    electrico: { nombre: 'Electricidad (equipos)', corto: 'Electricidad', color: 'var(--s-ele)', icono: '⚡',
+      tipos: { 'Cuadro secundario': '🔲', 'Toma de tierra': '⏚', 'Placas / inversor': '☀️', 'Cargador VE': '🔌', 'SAI': '🔋', 'Contador': '📟', 'Otro': '⚡' },
+      tramos: ['Línea', 'Tubo vacío'] },
+    calefaccion: { nombre: 'Calefacción', corto: 'Calefacción', color: 'var(--s-cal)', icono: '🔥',
+      tipos: { 'Caldera': '🔥', 'Radiador': '♨️', 'Colector suelo radiante': '▦', 'Termostato': '🌡️', 'Bomba circuladora': '⟳', 'Vaso de expansión': '◍', 'Válvula / llave': '⊗', 'Purgador': '💧', 'Depósito de combustible': '🛢️', 'Chimenea / estufa': '🪵', 'Otro': '🔥' },
+      tramos: ['Ida', 'Retorno', 'Ida y retorno'] },
+    agua: { nombre: 'Agua (fontanería)', corto: 'Agua', color: 'var(--s-agu)', icono: '💧',
+      tipos: { 'Contador / acometida': '📟', 'Llave de paso': '⊗', 'Grifo': '🚰', 'Ducha / bañera': '🚿', 'Inodoro': '🚽', 'Electrodoméstico': '🫧', 'Termo / ACS': '♨️', 'Descalcificador / filtro': '⚗️', 'Grupo de presión': '⟳', 'Toma exterior / riego': '🌱', 'Otro': '💧' },
+      tramos: ['Fría', 'Caliente', 'Retorno ACS'] },
+    saneamiento: { nombre: 'Saneamiento y desagües', corto: 'Desagües', color: 'var(--s-san)', icono: '🕳️',
+      tipos: { 'Arqueta': '⬛', 'Bajante': '⬇️', 'Sumidero': '🕳️', 'Desagüe': '↘️', 'Bomba de achique': '⟳', 'Canalón': '🌧️', 'Acometida / fosa': '🏁', 'Otro': '🕳️' },
+      tramos: ['Fecales', 'Pluviales', 'Mixto'] },
+    gas: { nombre: 'Gas', corto: 'Gas', color: 'var(--s-gas)', icono: '🟡',
+      tipos: { 'Contador': '📟', 'Llave': '⊗', 'Aparato': '🔥', 'Detector': '🚨', 'Depósito': '🛢️', 'Otro': '🟡' },
+      tramos: ['Tubería'] },
+    datos: { nombre: 'Telecomunicaciones y red', corto: 'Red / TV', color: 'var(--s-dat)', icono: '📶',
+      tipos: { 'Router / ONT': '🌐', 'Switch': '🔀', 'Punto de acceso WiFi': '📶', 'Toma RJ45': '🔗', 'Toma TV': '📺', 'Antena': '📡', 'Cámara': '📷', 'Domótica': '🤖', 'Otro': '📶' },
+      tramos: ['Cable de red', 'Coaxial', 'Fibra', 'Tubo vacío'] },
+    clima: { nombre: 'Climatización y ventilación', corto: 'Clima', color: 'var(--s-cli)', icono: '❄️',
+      tipos: { 'Split / interior': '❄️', 'Unidad exterior': '🌀', 'Recuperador': '♻️', 'Extractor': '💨', 'Rejilla': '▤', 'Termostato': '🌡️', 'Otro': '❄️' },
+      tramos: ['Frigorífica', 'Conducto', 'Desagüe condensados'] },
+    seguridad: { nombre: 'Seguridad y alarmas', corto: 'Seguridad', color: 'var(--s-seg)', icono: '🛡️',
+      tipos: { 'Central de alarma': '🛡️', 'Sensor': '👁️', 'Detector de humo': '🚨', 'Detector de inundación': '💦', 'Sirena': '📢', 'Cerradura / acceso': '🔐', 'Extintor': '🧯', 'Otro': '🛡️' },
+      tramos: ['Cable'] },
+    otros: { nombre: 'Otros', corto: 'Otros', color: 'var(--s-otr)', icono: '📌',
+      tipos: { 'Otro': '📌' }, tramos: ['Conexión'] }
+  };
+  const SIS_KEYS = Object.keys(SISTEMAS);
+  const ESTADOS_EL = { ok: 'Funciona', revisar: 'Por revisar', averia: 'Averiado' };
+
+  /* ---------- cuadro eléctrico (igual que el artefacto original) ---------- */
+  const CCOL = { '13-14': 'var(--c13)', '15-16': 'var(--c15)', '17-18': 'var(--c17)', '19-20': 'var(--c19)', '21-22': 'var(--c21)', '35-36': 'var(--c19)' };
+  const PALETA = ['#1f6fd1', '#d0362b', '#8a3fd1', '#1b8a4a', '#d98a00', '#0f7f86', '#c2185b', '#5b6b00', '#8a5a2b', '#3f51b5'];
+  const TIPOS = ['Automático', 'Diferencial', 'IGA', 'Libre'];
+  const CTIPOS = ['Potencia', 'Luz', 'Enchufes', 'TV', 'Teléfono', 'Telefonillo', 'Mixto', 'Tubo vacío'];
+  const ESTADOS = ['conocido', 'dudoso', 'desconocido'];
+  const ELEC = ['circuitos', 'puntos', 'cajas', 'conductores'];
+
+  /* ---------- estado ---------- */
+  let root = null, casa = null, lastMod = 0, pickerBusy = false;
+  const planUrls = {}, fotoUrls = {};
+  let view = 'cuadro', planta = '', filt = '', q = '', qs = '', zoom = false, placing = null, selId = null, pendFilt = 'sin', sysFilt = '', mantFilt = '';
+  let capas = null;
+
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const opts = (arr, sel) => arr.map(t => `<option${t === sel ? ' selected' : ''}>${esc(t)}</option>`).join('');
+
+  function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+  try {
+    view = ls('hm.view') || view; zoom = ls('hm.zoom') === '1'; planta = ls('hm.planta') || '';
+    const c = JSON.parse(ls('hm.capas') || 'null'); if (Array.isArray(c)) capas = new Set(c);
+  } catch (e) { }
+  if (!capas) capas = new Set(['puntos', 'registros', ...SIS_KEYS]);
+  const saveCapas = () => ls('hm.capas', JSON.stringify([...capas]));
+
+  /* ---------- acceso a datos ---------- */
+  const E = () => casa.electrico;
+  const circuitos = () => E().circuitos;
+  const puntos = () => E().puntos;
+  const cajas = () => E().cajas;
+  const conds = () => E().conductores;
+  const coll = n => ELEC.includes(n) ? casa.electrico[n] : casa[n];
+  const plantas = () => casa.plantas;
+  const plantaDe = id => plantas().find(p => p.id === id);
+  const plantaNombre = id => (plantaDe(id) || {}).nombre || 'Sin planta';
+
+  const colIdx = {};
+  const col = pos => { if (CCOL[pos]) return CCOL[pos]; if (!pos) return 'var(--cx)'; if (!(pos in colIdx)) { let h = 0; for (const ch of String(pos)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; colIdx[pos] = PALETA[h % PALETA.length]; } return colIdx[pos]; };
+  const short = pos => String(pos || '?').split('-')[0];
+  const circ = pos => circuitos().find(c => c.pos === pos);
+  const circDesc = pos => { const c = circ(pos); return c ? c.desc : 'Sin asignar'; };
+  const caja = code => cajas().find(k => k.codigo === code);
+  const condsOf = code => conds().filter(n => n.caja === code).sort((a, b) => (+a.orden || 0) - (+b.orden || 0));
+  const tag = code => String(code).replace(/-C(\d+)$/, '$1').replace(/\s+/g, '');
+  const placed = k => k.x !== null && k.x !== undefined && k.x !== '' && !isNaN(+k.x);
+  const elem = id => casa.elementos.find(e => e.id === id);
+  const sis = k => SISTEMAS[k] || SISTEMAS.otros;
+  const icono = e => sis(e.sistema).tipos[e.tipo] || sis(e.sistema).icono;
+  const nombreEl = e => e.nombre || e.tipo || sis(e.sistema).corto;
+  const tramosDe = id => casa.tramos.filter(t => t.desde === id || t.hasta === id);
+
+  /* ---------- fechas y revisiones ---------- */
+  const hoy = () => { const d = new Date(); return new Date(d - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
+  function sumaMeses(f, n) { const d = new Date(f + 'T12:00:00'); if (isNaN(d)) return ''; d.setMonth(d.getMonth() + (+n)); return d.toISOString().slice(0, 10); }
+  const fmt = f => { if (!f) return ''; const [y, m, d] = f.split('-'); return d ? `${d}/${m}/${y}` : f; };
+  function proxima(e) { const base = e.ultimaRevision || e.instalado; return e.revisionMeses && base ? sumaMeses(base, e.revisionMeses) : ''; }
+  function aviso(e) {
+    if (e.estado === 'averia') return { cls: 'averia', txt: 'Averiado' };
+    const p = proxima(e);
+    if (p && p <= hoy()) return { cls: 'vencida', txt: 'Revisión vencida' };
+    if (e.estado === 'revisar') return { cls: 'revisar', txt: 'Por revisar' };
+    if (p && p <= sumaMeses(hoy(), 2)) return { cls: 'pronto', txt: 'Revisión ' + fmt(p) };
+    return null;
+  }
+
+  /* ---------- interfaz general ---------- */
+  function setStatus(m, err, ok) { const s = $('#status'); s.hidden = !m; s.textContent = m || ''; s.classList.toggle('err', !!err); s.classList.toggle('ok', !!ok); }
+  function setSync(m, err) { const s = $('#sync'); s.textContent = m; s.classList.toggle('err', !!err); }
+  let statusTimer = null;
+  function flash(m) { setStatus(m, false, true); clearTimeout(statusTimer); statusTimer = setTimeout(() => setStatus(''), 4000); }
+
+  // Botón atrás de Android: mientras no se esté en la portada (cuadro sin hojas abiertas) se mantiene una
+  // entrada de historial propia, que es la que recoge el toque. Sin esto, atrás cierra la app.
+  function marca() { if (!(history.state && history.state.hm)) history.pushState({ hm: 1 }, ''); }
+  window.addEventListener('popstate', () => {
+    if ($('#lightbox').hidden === false) { $('#lightbox').hidden = true; $('#lightbox').innerHTML = ''; }
+    else if (!$('#editor').hidden) { closeSheet(); }
+    else if (view !== 'cuadro') { placing = null; view = 'cuadro'; ls('hm.view', view); render(); }
+    if (view !== 'cuadro' || !$('#editor').hidden) marca();
+  });
+
+  const VISTAS = [['cuadro', 'Cuadro'], ['plano', 'Planos'], ['sistemas', 'Sistemas'], ['mant', 'Mantenimiento'], ['pend', 'Sin resolver'], ['ajustes', 'Ajustes']];
+  function tabs() {
+    const nu = conds().filter(n => n.estado === 'desconocido').length;
+    const na = casa.elementos.filter(e => { const a = aviso(e); return a && a.cls !== 'pronto'; }).length;
+    const t = $('#tabs'); t.hidden = false;
+    t.innerHTML = VISTAS.map(([k, l]) => `<button class="tab" role="tab" data-view="${k}" aria-selected="${view === k}">${l}${k === 'pend' && nu ? ' · ' + nu : ''}${k === 'mant' && na ? ' · ' + na : ''}</button>`).join('');
+    t.querySelectorAll('.tab').forEach(b => b.onclick = () => go(b.dataset.view));
+  }
+  function go(v, o) {
+    o = o || {}; view = v; filt = o.filt || ''; selId = o.sel || null; placing = null;
+    if (o.planta) planta = o.planta;
+    ls('hm.view', v); if (planta) ls('hm.planta', planta);
+    if (v !== 'cuadro') marca();
+    render(); if (!o.sel) window.scrollTo(0, 0);
+  }
+  function render() {
+    if (!casa) return;
+    $('#titulo').textContent = casa.casa.nombre || 'Infraestructura de casa';
+    document.title = casa.casa.nombre || 'Infraestructura de casa';
+    tabs();
+    const v = $('#view');
+    if (!plantaDe(planta)) planta = plantas().length ? plantas()[0].id : '';
+    if (view === 'cuadro') renderCuadro(v);
+    else if (view === 'plano') renderPlan(v);
+    else if (view === 'sistemas') renderSistemas(v);
+    else if (view === 'mant') renderMant(v);
+    else if (view === 'pend') renderPend(v);
+    else if (view === 'ajustes') renderAjustes(v);
+    else { view = 'cuadro'; renderCuadro(v); }
+  }
+  function keepFocus(id, fn) { const i = $('#' + id); const p = i.selectionStart; fn(); const n = $('#' + id); n.focus(); try { n.setSelectionRange(p, p); } catch (e) { } }
+
+  /* ---------- Cuadro ---------- */
+  function renderCuadro(v) {
+    const qq = norm(q);
+    const list = circuitos().slice().sort((a, b) => (+a.orden || 999) - (+b.orden || 999) || String(a.pos).localeCompare(String(b.pos), 'es', { numeric: true }))
+      .filter(c => !qq || norm([c.pos, c.desc, c.notas, c.tipo].join(' ')).includes(qq) || puntos().some(p => p.circuito === c.pos && norm(p.estancia).includes(qq)));
+    v.innerHTML = `<div class="bar"><input id="q" type="search" placeholder="Buscar: caldera, 19-20, garaje…" aria-label="Buscar" value="${esc(q)}"><button class="btn primary" id="addc">+ Posición</button></div>
+    <div class="legendkey"><span><i style="background:var(--iga)"></i>IGA</span><span><i style="background:var(--dif)"></i>Diferencial</span><span><i style="background:var(--accent)"></i>Automático</span><span><i style="background:var(--free)"></i>Libre</span></div>
+    <div class="rows">${list.map(c => {
+      const pts = puntos().filter(p => p.circuito === c.pos);
+      const by = {}; pts.forEach(p => by[p.planta] = (by[p.planta] || 0) + 1);
+      return `<div class="row" data-tipo="${esc(c.tipo)}">
+        <span class="pos">${esc(c.pos)}</span>
+        <span class="desc"><strong>${esc(c.desc || '—')}</strong>${c.notas ? `<span class="note">${esc(c.notas)}</span>` : ''}</span>
+        <span class="meta">${c.tipo !== 'Automático' ? `<span class="pill">${esc(c.tipo)}</span>` : ''}${c.dudoso ? '<span class="pill warn">Por verificar</span>' : ''}<button class="edit" data-edit="${esc(c.id)}">Editar</button></span>
+        ${Object.keys(by).length ? `<span class="where">${Object.entries(by).map(([pl, n]) => `<button class="goplan" data-pl="${esc(pl)}" data-pos="${esc(c.pos)}">Ver en ${esc(plantaNombre(pl).toLowerCase())} · ${n}</button>`).join('')}</span>` : ''}
+      </div>`;
+    }).join('')}</div>${list.length ? '' : `<p class="status">${circuitos().length ? 'Nada coincide con la búsqueda.' : 'El cuadro está vacío. Añade la primera posición con «+ Posición».'}</p>`}`;
+    $('#q').addEventListener('input', () => keepFocus('q', () => { q = $('#q').value; renderCuadro(v); }));
+    $('#addc').onclick = () => openCirc({ tipo: 'Automático' });
+    v.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => { const c = circuitos().find(x => x.id === b.dataset.edit); openCirc({ ...c }, c.id); });
+    v.querySelectorAll('.goplan').forEach(b => b.onclick = () => { capas.add('puntos'); saveCapas(); go('plano', { planta: b.dataset.pl, filt: b.dataset.pos }); });
+  }
+
+  function boxState(code) { const cs = condsOf(code); return { unk: cs.filter(n => n.estado === 'desconocido').length, dud: cs.filter(n => n.estado === 'dudoso').length, n: cs.length }; }
+
+  /* ---------- Plano ---------- */
+  async function planUrl(id) {
+    if (planUrls[id] !== undefined) return planUrls[id];
+    const p = plantaDe(id); if (!p || !p.plano) return planUrls[id] = '';
+    try { planUrls[id] = URL.createObjectURL(await leeArchivo(p.plano)); }
+    catch (e) { planUrls[id] = ''; setStatus(`No encuentro el plano «${p.plano}» en la carpeta. Cámbialo en Ajustes.`, true); }
+    return planUrls[id];
+  }
+
+  function renderPlan(v) {
+    if (!plantas().length) {
+      v.innerHTML = `<div class="hero"><h2>Aún no hay plantas</h2><p>Añade una planta en Ajustes y elige la imagen de su plano (foto o captura vale).</p><div class="row-b"><button class="btn primary" id="toaj">Ir a Ajustes</button></div></div>`;
+      $('#toaj').onclick = () => go('ajustes'); return;
+    }
+    const showP = capas.has('puntos'), showR = capas.has('registros');
+    const pts = showP ? puntos().filter(p => p.planta === planta) : [];
+    const ks = cajas().filter(k => k.planta === planta);
+    const kp = showR ? ks.filter(placed) : [];
+    const els = casa.elementos.filter(e => e.planta === planta);
+    const ep = els.filter(e => placed(e) && capas.has(e.sistema in SISTEMAS ? e.sistema : 'otros'));
+    const unplaced = [...(showR ? ks.filter(k => !placed(k)).map(k => ({ k })) : []), ...els.filter(e => !placed(e) && capas.has(e.sistema)).map(e => ({ e }))];
+    const used = [...new Set(pts.map(p => p.circuito))].sort((a, b) => String(a).localeCompare(String(b), 'es', { numeric: true }));
+    const rooms = {};
+    pts.forEach(p => (rooms[p.estancia] = rooms[p.estancia] || { p: [], e: [] }).p.push(p));
+    ep.forEach(e => { if (e.estancia) (rooms[e.estancia] = rooms[e.estancia] || { p: [], e: [] }).e.push(e); });
+    // líneas: entre registros enlazados por conductores, y tramos entre elementos de la misma planta
+    const pairs = new Set();
+    if (showR) conds().forEach(n => { const a = caja(n.caja), b = caja(n.enlace); if (a && b && a !== b && a.planta === planta && b.planta === planta && placed(a) && placed(b)) pairs.add([a.codigo, b.codigo].sort().join('|')); });
+    const lines = casa.tramos.map(t => { const a = elem(t.desde), b = elem(t.hasta); if (!a || !b || a.planta !== planta || b.planta !== planta || !placed(a) || !placed(b) || !capas.has(t.sistema || a.sistema)) return ''; const s = sis(t.sistema || a.sistema); const di = Math.max(0, s.tramos.indexOf(t.tipo)) % 3; return `<line class="sys${di ? ' d' + di : ''}" style="stroke:${s.color}" x1="${a.x * 1000}" y1="${a.y * 1000}" x2="${b.x * 1000}" y2="${b.y * 1000}"/>`; }).join('');
+    const sysUsed = new Set(casa.elementos.map(e => e.sistema));
+    const what = placing ? (placing.kind === 'caja' ? 'el registro ' + esc(placing.code || '') : placing.kind === 'el' ? (placing.new ? 'el nuevo elemento' : 'el elemento') : 'el punto de luz') : '';
+    const pl = plantaDe(planta);
+    v.innerHTML = `${placing ? `<div class="placebar"><span>Toca el plano donde está ${what}.</span><button class="btn" id="cancelplace">Cancelar</button></div>` : ''}
+    <div class="floors layers" role="group" aria-label="Planta">${plantas().map(p => `<button class="seg" data-pl="${esc(p.id)}" aria-pressed="${p.id === planta}">${esc(p.nombre)}</button>`).join('')}</div>
+    <div class="planhead">
+      <div class="layers" role="group" aria-label="Capas">
+        <button class="seg" data-capa="puntos" aria-pressed="${showP}"><i style="background:var(--c13);border-radius:50%"></i>Puntos de luz</button>
+        <button class="seg" data-capa="registros" aria-pressed="${showR}"><i style="border:2px solid var(--box)"></i>Registros</button>
+        ${SIS_KEYS.filter(k => sysUsed.has(k)).map(k => `<button class="seg" data-capa="${k}" aria-pressed="${capas.has(k)}"><i style="background:${SISTEMAS[k].color}"></i>${esc(SISTEMAS[k].corto)}</button>`).join('')}
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn" id="zoom">${zoom ? 'Ajustar' : 'Ampliar ×2'}</button><button class="btn" id="addk">+ Registro</button><button class="btn" id="addp">+ Punto de luz</button><button class="btn primary" id="adde">+ Elemento</button></div></div>
+    ${showP && used.length ? `<div class="filters">${used.map(pos => `<button class="fchip" aria-pressed="${filt === pos}" data-f="${esc(pos)}"><span class="dot" style="background:${col(pos)}">${esc(short(pos))}</span>${esc(pos || 'Sin asignar')} <small>${esc(circDesc(pos))}</small></button>`).join('')}</div>` : ''}
+    <div class="planbox" id="planbox"><div class="plan${zoom ? ' z2' : ''}${placing ? ' placing' : ''}" id="plan">${pl && pl.plano ? `<img id="planimg" alt="Plano ${esc(pl.nombre.toLowerCase())}" draggable="false"${planUrls[planta] ? ` src="${planUrls[planta]}"` : ''}>` : `<div class="noplan">Esta planta no tiene imagen de plano. Puedes marcar igualmente, o elegir una en Ajustes.</div>`}
+      <svg class="links" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">${[...pairs].map(s => { const [a, b] = s.split('|').map(caja); return `<line class="caja" x1="${a.x * 1000}" y1="${a.y * 1000}" x2="${b.x * 1000}" y2="${b.y * 1000}"/>`; }).join('')}${lines}</svg>
+      ${pts.map(p => `<button class="mk${filt && p.circuito !== filt ? ' dim' : ''}${p.id === selId ? ' sel' : ''}" data-id="${esc(p.id)}" style="left:${(+p.x || .5) * 100}%;top:${(+p.y || .5) * 100}%;background:${col(p.circuito)}" title="${esc((p.circuito || 'Sin asignar') + ' · ' + p.estancia)}" aria-label="${esc((p.circuito || 'Sin asignar') + ', ' + p.estancia)}">${esc(short(p.circuito))}</button>`).join('')}
+      ${kp.map(k => { const s = boxState(k.codigo); return `<button class="rb${s.unk ? ' has-unk' : s.dud ? ' has-dud' : ''}${k.codigo === selId ? ' sel' : ''}" data-k="${esc(k.codigo)}" style="left:${k.x * 100}%;top:${k.y * 100}%" aria-label="Registro ${esc(k.codigo)}${s.unk ? `, ${s.unk} sin identificar` : ''}">${esc(tag(k.codigo))}${s.unk ? `<span class="bdg">${s.unk}</span>` : ''}</button>`; }).join('')}
+      ${ep.map(e => { const a = aviso(e); return `<button class="el${e.id === selId ? ' sel' : ''}" data-e="${esc(e.id)}" style="--sc:${sis(e.sistema).color};left:${e.x * 100}%;top:${e.y * 100}%" title="${esc(nombreEl(e) + (e.estancia ? ' · ' + e.estancia : ''))}" aria-label="${esc(sis(e.sistema).corto + ': ' + nombreEl(e))}">${esc(icono(e))}${a ? `<span class="bdg${a.cls === 'pronto' || a.cls === 'revisar' ? ' amb' : ''}">!</span>` : ''}</button>`; }).join('')}
+    </div></div>
+    ${unplaced.length ? `<div class="tray">Sin ubicar en el plano: ${unplaced.map(u => u.k ? `<button class="btn" data-k="${esc(u.k.codigo)}">${esc(u.k.codigo)}</button>` : `<button class="btn" data-e="${esc(u.e.id)}">${esc(icono(u.e) + ' ' + nombreEl(u.e))}</button>`).join('')}</div>` : ''}
+    <p class="hint">${showR ? 'Registros: recuadro rojo = tiene conductores sin identificar (el número dice cuántos). Ámbar = alguno dudoso. ' : ''}${ep.length ? 'Elementos: «!» rojo = averiado o revisión vencida; ámbar = por revisar o revisión próxima. Líneas de color = conexiones entre elementos (discontinua = retorno). ' : ''}${pl && pl.nota && showP ? esc(pl.nota) : ''}</p>
+    ${Object.keys(rooms).length ? `<div class="rooms">${Object.keys(rooms).sort((a, b) => a.localeCompare(b, 'es')).map(r => `<button class="room" data-room="${esc(r)}"><b>${esc(r || 'Sin estancia')}</b><span class="dots">${rooms[r].p.map(p => `<span style="background:${col(p.circuito)}">${esc(p.circuito || '?')}</span>`).join('')}${rooms[r].e.map(e => `<em title="${esc(nombreEl(e))}">${esc(icono(e))}</em>`).join('')}</span></button>`).join('')}</div>` : ''}`;
+
+    if (pl && pl.plano && !planUrls[planta]) { const id = planta; planUrl(id).then(u => { const i = $('#planimg'); if (u && i && id === planta) i.src = u; }); }
+    $('#zoom').onclick = () => { zoom = !zoom; ls('hm.zoom', zoom ? '1' : '0'); renderPlan(v); };
+    $('#addp').onclick = () => { capas.add('puntos'); saveCapas(); placing = { kind: 'punto', new: true }; renderPlan(v); };
+    $('#addk').onclick = () => openCaja({ planta, x: null, y: null });
+    $('#adde').onclick = () => { placing = { kind: 'el', new: true }; renderPlan(v); };
+    if (placing) $('#cancelplace').onclick = () => { placing = null; renderPlan(v); };
+    v.querySelectorAll('[data-pl]').forEach(b => b.onclick = () => { planta = b.dataset.pl; ls('hm.planta', planta); filt = ''; selId = null; renderPlan(v); });
+    v.querySelectorAll('[data-capa]').forEach(b => b.onclick = () => { const k = b.dataset.capa; capas.has(k) ? capas.delete(k) : capas.add(k); saveCapas(); renderPlan(v); });
+    v.querySelectorAll('.fchip').forEach(b => b.onclick = () => { filt = filt === b.dataset.f ? '' : b.dataset.f; renderPlan(v); });
+    v.querySelectorAll('.mk').forEach(b => b.onclick = ev => { if (placing) return; ev.stopPropagation(); const p = puntos().find(x => x.id === b.dataset.id); selId = p.id; openPunto({ ...p }, p.id); });
+    v.querySelectorAll('[data-k]').forEach(b => b.onclick = ev => { if (placing) return; ev.stopPropagation(); selId = b.dataset.k; openBox(b.dataset.k); });
+    v.querySelectorAll('[data-e]').forEach(b => b.onclick = ev => { if (placing) return; ev.stopPropagation(); selId = b.dataset.e; openEl({ ...elem(b.dataset.e) }, b.dataset.e); });
+    v.querySelectorAll('.room').forEach(b => b.onclick = () => {
+      const r = rooms[b.dataset.room]; const ids = r.p.map(p => p.id).concat(r.e.map(e => e.id));
+      v.querySelectorAll('.mk,.el').forEach(m => m.classList.toggle('hit', ids.includes(m.dataset.id || m.dataset.e)));
+      const m = v.querySelector('.mk.hit,.el.hit'); m && m.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' });
+      setTimeout(() => v.querySelectorAll('.hit').forEach(m => m.classList.remove('hit')), 1600);
+    });
+    if (selId) { const m = v.querySelector('.rb.sel,.mk.sel,.el.sel'); m && setTimeout(() => m.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' }), 80); }
+    $('#plan').addEventListener('click', ev => {
+      if (!placing) return;
+      const r = $('#plan').getBoundingClientRect();
+      const x = Math.round(Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width)) * 1000) / 1000, y = Math.round(Math.min(1, Math.max(0, (ev.clientY - r.top) / r.height)) * 1000) / 1000;
+      const p = placing; placing = null;
+      if (p.kind === 'caja') { const k = cajas().find(z => z.id === p.id); if (k) { Object.assign(k, { x, y, planta }); save(); } selId = p.code; renderPlan(v); return; }
+      if (p.kind === 'el') {
+        if (p.new) { renderPlan(v); openEl({ planta, x, y, sistema: ls('hm.sistema') || 'calefaccion', estado: 'ok' }); }
+        else { const e = elem(p.id); if (e) { Object.assign(e, { x, y, planta }); save(); } selId = p.id; renderPlan(v); }
+        return;
+      }
+      if (p.new) { renderPlan(v); openPunto({ planta, circuito: filt || '', x, y }); }
+      else { const d = { ...p.data, x, y }; renderPlan(v); openPunto(d, p.id); }
+    });
+  }
+
+  /* ---------- Sin resolver ---------- */
+  function renderPend(v) {
+    const nu = conds().filter(n => n.estado === 'desconocido').length, nd = conds().filter(n => n.estado === 'dudoso').length;
+    const want = pendFilt === 'sin' ? ['desconocido'] : ['desconocido', 'dudoso'];
+    const list = conds().filter(n => want.includes(n.estado));
+    const byFloor = {}; list.forEach(n => { const k = caja(n.caja); const f = k ? k.planta : ''; ((byFloor[f] = byFloor[f] || {})[n.caja] = (byFloor[f][n.caja] || [])).push(n); });
+    const dudosos = circuitos().filter(c => c.dudoso);
+    v.innerHTML = `<div class="sum"><div class="k unk"><b>${nu}</b><span>sin identificar</span></div><div class="k dud"><b>${nd}</b><span>dudosos</span></div><div class="k"><b>${conds().length}</b><span>conductores anotados</span></div><div class="k"><b>${cajas().length}</b><span>registros</span></div></div>
+    <div class="layers" style="margin-bottom:12px"><button class="seg" data-pf="sin" aria-pressed="${pendFilt === 'sin'}">Solo sin identificar</button><button class="seg" data-pf="todo" aria-pressed="${pendFilt === 'todo'}">Sin identificar + dudosos</button></div>
+    ${dudosos.length ? `<div class="grp"><h3>Posiciones del cuadro por verificar</h3>${dudosos.map(c => `<button class="cond" data-circ="${esc(c.id)}"><span class="top"><span class="st dudoso">por verificar</span><b style="font-family:var(--mono)">${esc(c.pos)}</b><span>${esc(c.desc || '—')}</span></span></button>`).join('')}</div>` : ''}
+    ${plantas().map(p => p.id).concat(['']).filter(f => byFloor[f]).map(f => `<div class="grp"><h3>${esc(plantaNombre(f))}</h3>${Object.keys(byFloor[f]).sort().map(code => `<div class="pend"><header><b>${esc(code)}</b><button class="linkto" data-open="${esc(code)}">Ver en el plano →</button></header>${byFloor[f][code].map(condHTML).join('')}</div>`).join('')}</div>`).join('') || '<p class="status">No queda ningún conductor por identificar.</p>'}`;
+    v.querySelectorAll('[data-pf]').forEach(b => b.onclick = () => { pendFilt = b.dataset.pf; renderPend(v); });
+    v.querySelectorAll('[data-open]').forEach(b => b.onclick = () => { const k = caja(b.dataset.open); capas.add('registros'); saveCapas(); go('plano', { planta: k ? k.planta : planta, sel: b.dataset.open }); });
+    v.querySelectorAll('[data-c]').forEach(b => b.onclick = () => { const n = conds().find(x => x.id === b.dataset.c); openCond({ ...n }, n.id); });
+    v.querySelectorAll('[data-circ]').forEach(b => b.onclick = () => { const c = circuitos().find(x => x.id === b.dataset.circ); openCirc({ ...c }, c.id); });
+  }
+
+  function condHTML(n) {
+    return `<button class="cond" data-c="${esc(n.id)}"><span class="top"><span class="st ${esc(n.estado)}">${esc(n.estado === 'desconocido' ? 'sin identificar' : n.estado)}</span>${n.tipo ? `<span class="ty">${esc(n.tipo)}</span>` : ''}${n.circuito ? `<span class="ty">${esc(n.circuito)}</span>` : ''}<span>${esc(n.funcion || '—')}</span></span>${n.recorrido ? `<span class="route">${esc(n.recorrido)}</span>` : ''}</button>`;
+  }
+
+  /* ---------- Sistemas ---------- */
+  function itemHTML(e) {
+    const a = aviso(e);
+    return `<button class="item" data-e="${esc(e.id)}" style="--sc:${sis(e.sistema).color}"><span class="ico">${esc(icono(e))}</span><span class="t"><b>${esc(nombreEl(e))}</b><small>${esc([e.nombre ? e.tipo : '', plantaNombre(e.planta), e.estancia, e.marca].filter(Boolean).join(' · '))}</small></span><span class="r">${a ? `<span class="st ${a.cls}">${esc(a.txt)}</span>` : ''}${placed(e) ? '' : '<span class="pill">sin ubicar</span>'}</span></button>`;
+  }
+  function renderSistemas(v) {
+    const qq = norm(qs);
+    const list = casa.elementos.filter(e => (!sysFilt || e.sistema === sysFilt) && (!qq || norm([e.nombre, e.tipo, e.estancia, e.marca, e.modelo, e.notas, plantaNombre(e.planta), sis(e.sistema).nombre].join(' ')).includes(qq)));
+    const cnt = k => casa.elementos.filter(e => e.sistema === k).length;
+    v.innerHTML = `<div class="sum">
+      <button class="k" data-sf="" aria-pressed="${!sysFilt}"><b>${casa.elementos.length}</b><span>Todos los elementos</span></button>
+      ${SIS_KEYS.filter(k => cnt(k) || k === sysFilt).map(k => `<button class="k" data-sf="${k}" aria-pressed="${sysFilt === k}" style="border-left:4px solid ${SISTEMAS[k].color}"><b>${cnt(k)}</b><span>${esc(SISTEMAS[k].icono + ' ' + SISTEMAS[k].corto)}</span></button>`).join('')}
+      <div class="k"><b>${circuitos().length}</b><span>⚡ posiciones del cuadro</span></div></div>
+    <div class="bar"><input id="qs" type="search" placeholder="Buscar: caldera, llave de paso, cocina…" aria-label="Buscar elementos" value="${esc(qs)}"><button class="btn primary" id="adde">+ Elemento</button></div>
+    ${SIS_KEYS.filter(k => list.some(e => e.sistema === k)).map(k => `<div class="grp"><h3><span style="color:${SISTEMAS[k].color}">■</span>${esc(SISTEMAS[k].nombre)}</h3>${list.filter(e => e.sistema === k).sort((a, b) => plantas().findIndex(p => p.id === a.planta) - plantas().findIndex(p => p.id === b.planta) || String(a.estancia || '').localeCompare(String(b.estancia || ''), 'es') || nombreEl(a).localeCompare(nombreEl(b), 'es')).map(itemHTML).join('')}</div>`).join('')
+      || `<p class="status">${casa.elementos.length ? 'Nada coincide con la búsqueda.' : 'Aún no hay elementos. Añade la caldera, las llaves de paso, los radiadores, el router… desde aquí o directamente sobre el plano con «+ Elemento».'}</p>`}`;
+    $('#qs').addEventListener('input', () => keepFocus('qs', () => { qs = $('#qs').value; renderSistemas(v); }));
+    v.querySelectorAll('[data-sf]').forEach(b => b.onclick = () => { sysFilt = b.dataset.sf; renderSistemas(v); });
+    $('#adde').onclick = () => openEl({ planta, x: null, y: null, sistema: sysFilt || ls('hm.sistema') || 'calefaccion', estado: 'ok' });
+    v.querySelectorAll('.item').forEach(b => b.onclick = () => openEl({ ...elem(b.dataset.e) }, b.dataset.e));
+  }
+
+  /* ---------- Mantenimiento ---------- */
+  function renderMant(v) {
+    const pend = casa.elementos.map(e => ({ e, a: aviso(e), p: proxima(e) })).filter(x => x.a).sort((a, b) => (a.p || '9') .localeCompare(b.p || '9'));
+    const plan = casa.elementos.filter(e => proxima(e) && !aviso(e)).sort((a, b) => proxima(a).localeCompare(proxima(b)));
+    const logs = casa.historial.filter(h => !mantFilt || h.sistema === mantFilt).sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)));
+    const gasto = logs.reduce((s, h) => s + (parseFloat(String(h.coste || '').replace(',', '.')) || 0), 0);
+    const sysOpts = [['', 'Todos'], ...SIS_KEYS.map(k => [k, SISTEMAS[k].corto]), ['cuadro', 'Cuadro eléctrico'], ['general', 'General']];
+    v.innerHTML = `<div class="sum"><div class="k unk"><b>${pend.filter(x => x.a.cls !== 'pronto').length}</b><span>averías / vencidas</span></div><div class="k dud"><b>${pend.filter(x => x.a.cls === 'pronto').length}</b><span>revisiones en 2 meses</span></div><div class="k"><b>${casa.historial.length}</b><span>anotaciones</span></div><div class="k"><b>${gasto.toLocaleString('es-ES', { maximumFractionDigits: 0 })} €</b><span>gasto anotado${mantFilt ? ' (filtro)' : ''}</span></div></div>
+    <div class="grp"><h3>Requiere atención</h3>${pend.map(x => itemHTML(x.e)).join('') || '<p class="status">Nada pendiente.</p>'}</div>
+    ${plan.length ? `<div class="grp"><h3>Próximas revisiones</h3>${plan.map(e => `<button class="log" data-e="${esc(e.id)}"><span class="d">${esc(fmt(proxima(e)))}</span><span class="x">${esc(icono(e) + ' ' + nombreEl(e))}<small>${esc(sis(e.sistema).corto + ' · cada ' + e.revisionMeses + ' meses')}</small></span><span></span></button>`).join('')}</div>` : ''}
+    <div class="grp"><h3>Historial de intervenciones</h3>
+      <div class="bar"><select id="mf" class="btn" aria-label="Filtrar por sistema">${sysOpts.map(([k, l]) => `<option value="${k}"${k === mantFilt ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select><span style="flex:1"></span><button class="btn primary" id="addh">+ Anotación</button></div>
+      ${logs.map(logHTML).join('') || '<p class="status">Sin anotaciones. Apunta aquí revisiones, averías, reparaciones y quién las hizo.</p>'}</div>`;
+    v.querySelectorAll('[data-e]').forEach(b => b.onclick = () => openEl({ ...elem(b.dataset.e) }, b.dataset.e));
+    v.querySelectorAll('[data-h]').forEach(b => b.onclick = () => { const h = casa.historial.find(x => x.id === b.dataset.h); openNota({ ...h }, h.id); });
+    $('#mf').onchange = () => { mantFilt = $('#mf').value; renderMant(v); };
+    $('#addh').onclick = () => openNota({ fecha: hoy(), sistema: mantFilt || 'general' });
+  }
+  function sisNombre(k) { return k === 'cuadro' ? 'Cuadro eléctrico' : k === 'general' ? 'General' : sis(k).corto; }
+  function logHTML(h) {
+    const e = h.elemento && elem(h.elemento);
+    return `<button class="log" data-h="${esc(h.id)}"><span class="d">${esc(fmt(h.fecha))}</span><span class="x">${esc(h.texto || '—')}<small>${esc([sisNombre(h.sistema), e ? nombreEl(e) : '', h.quien, h.revision ? 'revisión' : ''].filter(Boolean).join(' · '))}</small></span><span class="c">${h.coste ? esc(h.coste) + ' €' : ''}</span></button>`;
+  }
+
+  /* ---------- Ajustes ---------- */
+  function renderAjustes(v) {
+    v.innerHTML = `<div class="card"><h2>Casa</h2>
+      <div class="field"><label for="a-nom">Nombre</label><input id="a-nom" value="${esc(casa.casa.nombre)}"></div>
+      <div class="field"><label for="a-dir">Dirección / notas</label><textarea id="a-dir">${esc(casa.casa.notas)}</textarea></div></div>
+    <div class="card"><h2>Plantas y planos</h2>
+      <p class="hint" style="margin:0">El orden de aquí es el de los botones del plano. La imagen se copia a la carpeta <code>planos/</code>. Las marcas se guardan en proporción a la imagen: si cambias un plano por otro con distinto encuadre, habrá que moverlas.</p>
+      ${plantas().map((p, i) => `<div class="floor"><span id="th-${esc(p.id)}">${p.plano ? '<span class="ph" style="display:block"></span>' : '<span class="ph" style="display:block"></span>'}</span>
+        <div class="field"><input data-pn="${esc(p.id)}" value="${esc(p.nombre)}" aria-label="Nombre de la planta"><small class="hint">${esc(p.plano || 'sin imagen')} · ${cuentaPlanta(p.id)} marcas</small></div>
+        <div class="bt"><button class="btn small" data-up="${i}"${i ? '' : ' disabled'} aria-label="Subir">↑</button><button class="btn small" data-dn="${i}"${i < plantas().length - 1 ? '' : ' disabled'} aria-label="Bajar">↓</button><label class="btn small">Plano…<input type="file" accept="image/*" data-img="${esc(p.id)}" hidden></label><button class="btn small danger" data-delp="${esc(p.id)}">Borrar</button></div></div>`).join('')}
+      <div><button class="btn primary" id="addpl">+ Planta</button></div><div id="pcf"></div></div>
+    <div class="card"><h2>Carpeta de datos</h2>
+      <p style="margin:0">Guardando en la carpeta <b>${esc(root ? root.name : '—')}</b>: <code>casa.json</code>, <code>planos/</code>, <code>fotos/</code> y copias de seguridad automáticas en <code>copias/</code>.</p>
+      <div class="row-b" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="chdir">Cambiar de carpeta</button><button class="btn" id="exp">Descargar copia (.json)</button><button class="btn" id="reload">Releer de la carpeta</button></div></div>`;
+    plantas().forEach(async p => { if (!p.plano) return; const u = await planUrl(p.id); const s = $('#th-' + CSS.escape(p.id)); if (u && s) s.innerHTML = `<img src="${u}" alt="">`; });
+    $('#a-nom').onchange = () => { casa.casa.nombre = $('#a-nom').value.trim(); save(); render(); };
+    $('#a-dir').onchange = () => { casa.casa.notas = $('#a-dir').value; save(); };
+    v.querySelectorAll('[data-pn]').forEach(i => i.onchange = () => { const p = plantaDe(i.dataset.pn); const n = i.value.trim(); if (!n) { i.value = p.nombre; return; } p.nombre = n; save(); tabs(); });
+    const mv = (i, d) => { const a = plantas(); [a[i], a[i + d]] = [a[i + d], a[i]]; save(); renderAjustes(v); };
+    v.querySelectorAll('[data-up]').forEach(b => b.onclick = () => mv(+b.dataset.up, -1));
+    v.querySelectorAll('[data-dn]').forEach(b => b.onclick = () => mv(+b.dataset.dn, 1));
+    v.querySelectorAll('[data-img]').forEach(inp => inp.onchange = async () => { const f = inp.files[0]; if (!f) return; await ponPlano(plantaDe(inp.dataset.img), f); renderAjustes(v); });
+    v.querySelectorAll('[data-delp]').forEach(b => b.onclick = () => {
+      const p = plantaDe(b.dataset.delp); const n = cuentaPlanta(p.id);
+      $('#pcf').innerHTML = `<div class="confirm">${n ? `«${esc(p.nombre)}» tiene ${n} marcas. Si la borras, quedarán sin planta (no se pierden, pero no se verán en ningún plano). ` : ''}¿Borrar la planta «${esc(p.nombre)}»? <button class="btn danger" id="yes">Sí, borrar</button> <button class="btn" id="no">No</button></div>`;
+      $('#no').onclick = () => $('#pcf').innerHTML = '';
+      $('#yes').onclick = () => { casa.plantas = plantas().filter(x => x !== p); save(); renderAjustes(v); };
+    });
+    $('#addpl').onclick = () => openPlanta();
+    $('#chdir').onclick = () => pickRoot();
+    $('#exp').onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(casa, null, 1)], { type: 'application/json' })); a.download = `casa-${hoy()}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
+    $('#reload').onclick = () => cargaCasa(true);
+  }
+  function cuentaPlanta(id) { return puntos().filter(p => p.planta === id).length + cajas().filter(k => k.planta === id).length + casa.elementos.filter(e => e.planta === id).length; }
+  async function ponPlano(p, file) {
+    try {
+      setStatus('Copiando el plano a la carpeta…');
+      const ext = (file.type.split('/')[1] || 'jpg').replace('jpeg', 'jpg').replace(/[^a-z0-9]/g, '');
+      const name = `planos/${slug(p.nombre)}-${Date.now().toString(36)}.${ext}`;
+      await escribe(name, file);
+      p.plano = name; delete planUrls[p.id]; save(); setStatus('');
+    } catch (e) { setStatus('No se pudo copiar el plano: ' + e.message, true); }
+  }
+  const slug = s => norm(s).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'planta';
+  function openPlanta() {
+    sheet(`<h2>Nueva planta</h2>
+      <div class="field"><label for="f-pn">Nombre</label><input id="f-pn" placeholder="Planta baja, Sótano, Jardín…"></div>
+      <div class="field"><label for="f-pi">Imagen del plano (opcional)</label><input id="f-pi" type="file" accept="image/*"></div>
+      <p class="hint" style="margin:0">Una foto del plano en papel vale. Mejor recortada y derecha: las marcas se colocan sobre ella.</p>
+      <div class="actions"><div></div><div><button class="btn" id="cancel">Cancelar</button><button class="btn primary" id="save">Añadir</button></div></div>`);
+    $('#save').onclick = async () => {
+      const nombre = $('#f-pn').value.trim(); if (!nombre) return msg('Pon un nombre a la planta.');
+      let id = slug(nombre); while (plantaDe(id)) id += '-2';
+      const p = { id, nombre, plano: '' }; casa.plantas.push(p);
+      const f = $('#f-pi').files[0]; $('#save').disabled = true;
+      if (f) await ponPlano(p, f);
+      save(); planta = id; ls('hm.planta', id); closeSheet();
+    };
+  }
+
+  /* ---------- hojas de edición ---------- */
+  function sheet(html) { const ed = $('#editor'); ed.innerHTML = `<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-modal="true"><div class="in">${html}<div id="cf"></div></div></div>`; ed.hidden = false; marca(); $('#scrim').onclick = closeSheet; const c = $('#cancel'); c && (c.onclick = closeSheet); const f = ed.querySelector('input:not([type=file]):not([type=checkbox]),textarea'); if (f && !f.value && matchMedia('(pointer:fine)').matches) f.focus(); }
+  function closeSheet() { $('#editor').hidden = true; $('#editor').innerHTML = ''; render(); }
+  function msg(t) { $('#cf').innerHTML = `<div class="confirm">${t}</div>`; }
+  function actions(id, extra) { return `<div class="actions"><div>${id ? '<button class="btn danger" id="del">Borrar</button>' : ''}${extra || ''}</div><div><button class="btn" id="cancel">Cancelar</button><button class="btn primary" id="save">Guardar</button></div></div>`; }
+  function wireDel(n, id, after) {
+    const d = $('#del'); if (!d) return;
+    d.onclick = () => {
+      msg('¿Borrar definitivamente? <button class="btn danger" id="yes">Sí, borrar</button>');
+      $('#yes').onclick = () => { const a = coll(n); const i = a.findIndex(x => x.id === id); if (i >= 0) a.splice(i, 1); if (n === 'elementos') casa.tramos = casa.tramos.filter(t => t.desde !== id && t.hasta !== id); save(); after ? after() : closeSheet(); };
+    };
+  }
+  function write(n, id, data, after) {
+    const a = coll(n);
+    if (!id) id = uid();
+    const i = a.findIndex(x => x.id === id);
+    if (i >= 0) a[i] = { id, ...data }; else a.push({ id, ...data });
+    save(); after ? after(id) : closeSheet();
+  }
+
+  function openCirc(d, id) {
+    sheet(`<h2>${id ? 'Posición ' + esc(d.pos) : 'Nueva posición del cuadro'}</h2>
+      <div class="grid2"><div class="field"><label for="f-pos">Posición</label><input id="f-pos" value="${esc(d.pos)}" placeholder="p. ej. 37-38"></div>
+      <div class="field"><label for="f-tipo">Tipo</label><select id="f-tipo">${opts(TIPOS, d.tipo)}</select></div></div>
+      <div class="field"><label for="f-desc">Qué alimenta</label><input id="f-desc" value="${esc(d.desc)}"></div>
+      <div class="field"><label for="f-notas">Notas</label><textarea id="f-notas">${esc(d.notas)}</textarea></div>
+      <label class="check"><input type="checkbox" id="f-dud"${d.dudoso ? ' checked' : ''}> Por verificar</label>${actions(id)}`);
+    wireDel('circuitos', id);
+    $('#save').onclick = () => {
+      const pos = $('#f-pos').value.trim(); if (!pos) return msg('Indica la posición (p. ej. 37-38).');
+      if (circuitos().some(c => c.pos === pos && c.id !== id)) return msg('Ya existe esa posición en el cuadro.');
+      const old = id && d.pos !== pos ? d.pos : null;
+      write('circuitos', id, { pos, tipo: $('#f-tipo').value, desc: $('#f-desc').value.trim(), notas: $('#f-notas').value.trim(), dudoso: $('#f-dud').checked, orden: parseInt(pos, 10) || 999 });
+      // renombrar una posición arrastra sus puntos y conductores, para que no queden huérfanos
+      if (old) { puntos().forEach(p => { if (p.circuito === old) p.circuito = pos; }); conds().forEach(n => { if (n.circuito === old) n.circuito = pos; }); save(); render(); }
+    };
+  }
+
+  function openPunto(d, id) {
+    const rooms = estancias();
+    const c = circ(d.circuito);
+    sheet(`<h2>${id ? 'Punto de luz' : 'Nuevo punto de luz'} · ${esc(plantaNombre(d.planta))}</h2>
+      ${c ? `<p class="hint" style="margin:0"><b style="color:var(--fg)">${esc(c.pos)}</b> · ${esc(c.desc)}${c.notas ? ' — ' + esc(c.notas) : ''}</p>` : ''}
+      <div class="grid2"><div class="field"><label for="f-circ">Circuito</label><select id="f-circ"><option value="">— sin asignar —</option>${circuitos().map(x => `<option value="${esc(x.pos)}"${x.pos === d.circuito ? ' selected' : ''}>${esc(x.pos)} · ${esc((x.desc || '').slice(0, 34))}</option>`).join('')}</select></div>
+      <div class="field"><label for="f-est">Estancia</label><input id="f-est" value="${esc(d.estancia)}" list="dl-est"><datalist id="dl-est">${rooms.map(s => `<option value="${esc(s)}">`).join('')}</datalist></div></div>
+      <div class="field"><label for="f-notas">Notas</label><textarea id="f-notas" placeholder="Luz, enchufe, qué aparato…">${esc(d.notas)}</textarea></div>
+      ${actions(id, id ? '<button class="btn" id="move">Mover en el plano</button>' : '')}`);
+    wireDel('puntos', id);
+    const collect = () => ({ planta: d.planta, x: +d.x, y: +d.y, circuito: $('#f-circ').value, estancia: $('#f-est').value.trim(), notas: $('#f-notas').value.trim() });
+    const mv = $('#move'); if (mv) mv.onclick = () => { const cur = collect(); placing = { kind: 'punto', id, data: cur }; view = 'plano'; planta = d.planta; closeSheet(); };
+    $('#cancel').onclick = $('#scrim').onclick = () => { selId = null; closeSheet(); };
+    $('#save').onclick = () => { const data = collect(); if (!data.estancia) return msg('Indica la estancia.'); selId = null; write('puntos', id, data); };
+  }
+  function estancias() { return [...new Set(puntos().map(p => p.estancia).concat(casa.elementos.map(e => e.estancia)).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es')); }
+
+  function openBox(code) {
+    const k = caja(code); if (!k) return;
+    const cs = condsOf(code); const s = boxState(code);
+    sheet(`<h2>Registro ${esc(k.codigo)}</h2>
+      <p class="hint" style="margin:0">${esc(plantaNombre(k.planta))}${k.ubicacion ? ' · ' + esc(k.ubicacion) : ''}${placed(k) ? '' : ' · <b>sin ubicar en el plano</b>'}</p>
+      ${k.aviso ? `<div class="aviso">⚠ ${esc(k.aviso)}</div>` : ''}
+      ${k.notas ? `<p style="margin:0;font-size:.9rem">${esc(k.notas)}</p>` : ''}
+      ${(k.fotos || []).length ? `<div class="fotos" id="fotos"></div>` : ''}
+      <p class="hint" style="margin:0">${cs.length} conductores anotados${s.unk ? ` · <b style="color:var(--unk)">${s.unk} sin identificar</b>` : ''}${s.dud ? ` · <b style="color:var(--dud)">${s.dud} dudosos</b>` : ''}</p>
+      <div>${cs.map(n => condHTML(n) + (n.enlace && caja(n.enlace) ? `<div style="margin:-4px 0 6px"><button class="linkto" data-go="${esc(n.enlace)}">→ ir a ${esc(n.enlace)}${caja(n.enlace).planta !== k.planta ? ' (' + esc(plantaNombre(caja(n.enlace).planta).toLowerCase()) + ')' : ''}</button></div>` : '')).join('') || '<p class="status">Sin conductores anotados.</p>'}</div>
+      ${conds().filter(n => n.enlace === code && n.caja !== code).length ? `<h3>Llegan desde</h3><div>${conds().filter(n => n.enlace === code && n.caja !== code).map(n => `<div><button class="linkto" data-go="${esc(n.caja)}">← ${esc(n.caja)}</button> <span class="hint">${esc(n.funcion || '')}</span></div>`).join('')}</div>` : ''}
+      <div class="actions"><div><button class="btn" id="addn">+ Conductor</button><button class="btn" id="editk">Editar registro</button><button class="btn" id="movek">${placed(k) ? 'Mover' : 'Colocar'} en el plano</button></div><div><button class="btn" id="cancel">Cerrar</button></div></div>`);
+    if ((k.fotos || []).length) fotosWidget($('#fotos'), k.fotos.slice(), null);
+    $('#cancel').onclick = $('#scrim').onclick = () => { selId = null; closeSheet(); };
+    $('#addn').onclick = () => openCond({ caja: code, estado: 'desconocido', orden: cs.length + 1 });
+    $('#editk').onclick = () => openCaja({ ...k }, k.id);
+    $('#movek').onclick = () => { placing = { kind: 'caja', id: k.id, code: k.codigo }; view = 'plano'; ls('hm.view', view); if (k.planta && plantaDe(k.planta)) { planta = k.planta; ls('hm.planta', planta); } capas.add('registros'); saveCapas(); closeSheet(); };
+    document.querySelectorAll('.sheet .cond').forEach(b => b.onclick = () => { const n = conds().find(x => x.id === b.dataset.c); openCond({ ...n }, n.id); });
+    document.querySelectorAll('.sheet [data-go]').forEach(b => b.onclick = () => { const t = caja(b.dataset.go); $('#editor').hidden = true; $('#editor').innerHTML = ''; capas.add('registros'); saveCapas(); go('plano', { planta: t.planta, sel: t.codigo }); openBox(t.codigo); });
+  }
+
+  function openCaja(d, id) {
+    const fotos = (d.fotos || []).slice();
+    sheet(`<h2>${id ? 'Editar registro ' + esc(d.codigo) : 'Nuevo registro'}</h2>
+      <div class="grid2"><div class="field"><label for="f-cod">Código</label><input id="f-cod" value="${esc(d.codigo)}" placeholder="p. ej. HS-C6"></div>
+      <div class="field"><label for="f-pl">Planta</label><select id="f-pl">${plantas().map(p => `<option value="${esc(p.id)}"${p.id === d.planta ? ' selected' : ''}>${esc(p.nombre)}</option>`).join('')}</select></div></div>
+      <div class="field"><label for="f-ub">Ubicación</label><input id="f-ub" value="${esc(d.ubicacion)}" placeholder="Encima de la puerta del ropero…"></div>
+      <div class="field"><label for="f-av">Aviso de seguridad</label><input id="f-av" value="${esc(d.aviso)}" placeholder="p. ej. sin tierra"></div>
+      <div class="field"><label for="f-notas">Notas</label><textarea id="f-notas">${esc(d.notas)}</textarea></div>
+      <div class="field"><label>Fotos</label><div class="fotos" id="fotos"></div></div>
+      ${actions(id)}`);
+    fotosWidget($('#fotos'), fotos, 'registro');
+    const back = () => { if (id) { $('#editor').hidden = true; $('#editor').innerHTML = ''; render(); openBox(d.codigo); } else closeSheet(); };
+    wireDel('cajas', id);
+    $('#cancel').onclick = $('#scrim').onclick = back;
+    $('#save').onclick = () => {
+      const codigo = $('#f-cod').value.trim().toUpperCase(); if (!codigo) return msg('Indica el código del registro.');
+      if (cajas().some(k => k.codigo === codigo && k.id !== id)) return msg('Ya existe un registro con ese código.');
+      const data = { codigo, planta: $('#f-pl').value, ubicacion: $('#f-ub').value.trim(), aviso: $('#f-av').value.trim(), notas: $('#f-notas').value.trim(), fotos, x: placed(d) ? +d.x : null, y: placed(d) ? +d.y : null };
+      if (data.planta !== d.planta && id) { data.x = null; data.y = null; }
+      const did = id || ('k-' + codigo.replace(/[^A-Za-z0-9_-]/g, '_'));
+      // cambiar el código arrastra los conductores que cuelgan de él y los enlaces que apuntan a él
+      if (id && d.codigo && d.codigo !== codigo) conds().forEach(n => { if (n.caja === d.codigo) n.caja = codigo; if (n.enlace === d.codigo) n.enlace = codigo; });
+      write('cajas', did, data, () => {
+        if (!id || !placed(data)) { placing = { kind: 'caja', id: did, code: codigo }; view = 'plano'; planta = data.planta; ls('hm.view', view); ls('hm.planta', planta); capas.add('registros'); saveCapas(); closeSheet(); }
+        else { d.codigo = codigo; back(); }
+      });
+    };
+  }
+
+  function openCond(d, id) {
+    sheet(`<h2>${id ? 'Conductor' : 'Nuevo conductor'} · ${esc(d.caja)}</h2>
+      <div class="field"><label for="f-fun">Qué es / adónde va</label><input id="f-fun" value="${esc(d.funcion)}"></div>
+      <div class="field"><label for="f-rec">Recorrido (tomas)</label><input id="f-rec" value="${esc(d.recorrido)}" placeholder="HS-C4-L2 → HS-C4-R2 → HS-C5-L2"></div>
+      <div class="grid2"><div class="field"><label for="f-est">Estado</label><select id="f-est">${ESTADOS.map(e => `<option value="${e}"${e === d.estado ? ' selected' : ''}>${e === 'desconocido' ? 'sin identificar' : e}</option>`).join('')}</select></div>
+      <div class="field"><label for="f-ty">Tipo</label><select id="f-ty"><option value="">—</option>${opts(CTIPOS, d.tipo)}</select></div></div>
+      <div class="grid2"><div class="field"><label for="f-enl">Conecta con registro</label><select id="f-enl"><option value="">—</option>${cajas().map(k => k.codigo).sort().filter(c => c !== d.caja).map(c => `<option${c === d.enlace ? ' selected' : ''}>${esc(c)}</option>`).join('')}</select></div>
+      <div class="field"><label for="f-ci">Automático</label><select id="f-ci"><option value="">—</option>${circuitos().map(c => `<option value="${esc(c.pos)}"${c.pos === d.circuito ? ' selected' : ''}>${esc(c.pos)}</option>`).join('')}</select></div></div>
+      <div class="field"><label for="f-notas">Notas</label><textarea id="f-notas">${esc(d.notas)}</textarea></div>
+      ${actions(id)}`);
+    const back = () => { const code = d.caja; $('#editor').hidden = true; $('#editor').innerHTML = ''; render(); openBox(code); };
+    wireDel('conductores', id, back);
+    $('#cancel').onclick = $('#scrim').onclick = back;
+    $('#save').onclick = () => write('conductores', id, { caja: d.caja, orden: +d.orden || 0, funcion: $('#f-fun').value.trim(), recorrido: $('#f-rec').value.trim(), estado: $('#f-est').value, tipo: $('#f-ty').value, enlace: $('#f-enl').value, circuito: $('#f-ci').value, notas: $('#f-notas').value.trim() }, back);
+  }
+
+  /* ---------- elementos de los demás sistemas ---------- */
+  function openEl(d, id) {
+    const fotos = (d.fotos || []).slice();
+    const rooms = estancias();
+    const tr = id ? tramosDe(id) : [];
+    const hs = id ? casa.historial.filter(h => h.elemento === id).sort((a, b) => String(b.fecha).localeCompare(String(a.fecha))) : [];
+    const prox = proxima(d);
+    sheet(`<h2>${id ? esc(icono(d) + ' ' + nombreEl(d)) : 'Nuevo elemento'}${d.planta ? ' · ' + esc(plantaNombre(d.planta)) : ''}</h2>
+      <div class="grid2"><div class="field"><label for="f-sis">Sistema</label><select id="f-sis">${SIS_KEYS.map(k => `<option value="${k}"${k === d.sistema ? ' selected' : ''}>${esc(SISTEMAS[k].icono + ' ' + SISTEMAS[k].nombre)}</option>`).join('')}</select></div>
+      <div class="field"><label for="f-tipo">Tipo</label><select id="f-tipo"></select></div></div>
+      <div class="grid2"><div class="field"><label for="f-nom">Nombre o etiqueta</label><input id="f-nom" value="${esc(d.nombre)}" placeholder="Radiador ventana, Llave general…"></div>
+      <div class="field"><label for="f-est">Estancia</label><input id="f-est" value="${esc(d.estancia)}" list="dl-est"><datalist id="dl-est">${rooms.map(s => `<option value="${esc(s)}">`).join('')}</datalist></div></div>
+      <div class="grid2"><div class="field"><label for="f-pl">Planta</label><select id="f-pl"><option value="">— sin planta —</option>${plantas().map(p => `<option value="${esc(p.id)}"${p.id === d.planta ? ' selected' : ''}>${esc(p.nombre)}</option>`).join('')}</select></div>
+      <div class="field"><label for="f-es">Estado</label><select id="f-es">${Object.entries(ESTADOS_EL).map(([k, l]) => `<option value="${k}"${k === (d.estado || 'ok') ? ' selected' : ''}>${l}</option>`).join('')}</select></div></div>
+      <div class="grid2"><div class="field"><label for="f-mar">Marca / modelo</label><input id="f-mar" value="${esc(d.marca)}"></div>
+      <div class="field"><label for="f-ins">Instalado</label><input id="f-ins" type="date" value="${esc(d.instalado)}"></div></div>
+      <div class="grid2"><div class="field"><label for="f-rm">Revisar cada (meses)</label><input id="f-rm" type="number" min="0" inputmode="numeric" value="${esc(d.revisionMeses)}"></div>
+      <div class="field"><label for="f-ur">Última revisión</label><input id="f-ur" type="date" value="${esc(d.ultimaRevision)}"></div></div>
+      ${prox ? `<p class="hint" style="margin:0">Próxima revisión: <b style="color:var(--fg)">${esc(fmt(prox))}</b></p>` : ''}
+      <div class="field"><label for="f-notas">Notas</label><textarea id="f-notas" placeholder="Presión, contraseñas no; qué llave corta qué, teléfono del técnico…">${esc(d.notas)}</textarea></div>
+      <div class="field"><label>Fotos</label><div class="fotos" id="fotos"></div></div>
+      ${id ? `<h3>Conexiones</h3><div>${tr.map(t => { const o = elem(t.desde === id ? t.hasta : t.desde); if (!o) return ''; return `<div class="cond" style="cursor:default"><span class="top"><span class="ty">${esc(t.tipo || '')}</span><button class="linkto" data-goe="${esc(o.id)}">${t.desde === id ? '→' : '←'} ${esc(icono(o) + ' ' + nombreEl(o))}${o.planta !== d.planta ? ' (' + esc(plantaNombre(o.planta).toLowerCase()) + ')' : ''}</button><button class="edit" data-tr="${esc(t.id)}">Editar</button></span>${t.notas ? `<span class="route">${esc(t.notas)}</span>` : ''}</div>`; }).join('') || '<p class="hint" style="margin:0">Sin conexiones. Une por ejemplo la caldera con el colector, o la llave de paso con lo que corta.</p>'}</div>
+      <h3>Historial</h3><div>${hs.map(logHTML).join('') || '<p class="hint" style="margin:0">Sin anotaciones.</p>'}</div>` : ''}
+      ${actions(id, id ? `<button class="btn" id="addt">+ Conexión</button><button class="btn" id="addh">+ Anotación</button><button class="btn" id="move">${placed(d) ? 'Mover' : 'Colocar'} en el plano</button>` : '')}`);
+    const fillTipos = () => { const s = sis($('#f-sis').value); const ts = Object.keys(s.tipos); $('#f-tipo').innerHTML = ts.map(t => `<option${t === d.tipo ? ' selected' : ''}>${esc(t)}</option>`).join(''); };
+    fillTipos(); $('#f-sis').onchange = fillTipos;
+    fotosWidget($('#fotos'), fotos, 'elemento');
+    wireDel('elementos', id);
+    const collect = () => ({
+      sistema: $('#f-sis').value, tipo: $('#f-tipo').value, nombre: $('#f-nom').value.trim(), estancia: $('#f-est').value.trim(), planta: $('#f-pl').value,
+      estado: $('#f-es').value, marca: $('#f-mar').value.trim(), instalado: $('#f-ins').value, revisionMeses: $('#f-rm').value ? +$('#f-rm').value : '',
+      ultimaRevision: $('#f-ur').value, notas: $('#f-notas').value.trim(), fotos,
+      x: placed(d) && $('#f-pl').value === d.planta ? +d.x : null, y: placed(d) && $('#f-pl').value === d.planta ? +d.y : null
+    });
+    const guarda = after => { const data = collect(); ls('hm.sistema', data.sistema); capas.add(data.sistema); saveCapas(); write('elementos', id, data, after); return data; };
+    $('#cancel').onclick = $('#scrim').onclick = () => { selId = null; closeSheet(); };
+    $('#save').onclick = () => { selId = null; guarda(); };
+    if (id) {
+      $('#move').onclick = () => { const data = guarda(() => { }); if (!data.planta) return msg('Elige primero la planta.'); placing = { kind: 'el', id }; view = 'plano'; planta = data.planta; ls('hm.view', view); ls('hm.planta', planta); closeSheet(); };
+      $('#addt').onclick = () => { guarda(() => { }); openTramo({ desde: id, sistema: $('#f-sis').value }); };
+      $('#addh').onclick = () => { guarda(() => { }); openNota({ fecha: hoy(), sistema: $('#f-sis').value, elemento: id }, null, () => reopenEl(id)); };
+      document.querySelectorAll('.sheet [data-goe]').forEach(b => b.onclick = () => { guarda(() => { }); const o = elem(b.dataset.goe); $('#editor').hidden = true; $('#editor').innerHTML = ''; if (placed(o) && o.planta) { capas.add(o.sistema); saveCapas(); go('plano', { planta: o.planta, sel: o.id }); } else render(); reopenEl(o.id); });
+      document.querySelectorAll('.sheet [data-tr]').forEach(b => b.onclick = () => { guarda(() => { }); const t = casa.tramos.find(x => x.id === b.dataset.tr); openTramo({ ...t }, t.id); });
+      document.querySelectorAll('.sheet [data-h]').forEach(b => b.onclick = () => { guarda(() => { }); const h = casa.historial.find(x => x.id === b.dataset.h); openNota({ ...h }, h.id, () => reopenEl(id)); });
+    } else if (d.x === null || d.x === undefined) {
+      // alta desde la lista: al guardar, se ofrece colocarlo en el plano directamente
+      $('#save').onclick = () => { const data = collect(); guarda(nid => { if (data.planta && plantaDe(data.planta)) { placing = { kind: 'el', id: nid }; view = 'plano'; planta = data.planta; ls('hm.view', view); } closeSheet(); }); };
+    }
+  }
+  function reopenEl(id) { const e = elem(id); $('#editor').hidden = true; $('#editor').innerHTML = ''; render(); if (e) openEl({ ...e }, id); }
+
+  function openTramo(d, id) {
+    const from = elem(d.desde);
+    const s = d.sistema || (from && from.sistema) || 'otros';
+    const cand = casa.elementos.filter(e => e.id !== d.desde).sort((a, b) => (a.sistema === s ? 0 : 1) - (b.sistema === s ? 0 : 1) || plantaNombre(a.planta).localeCompare(plantaNombre(b.planta), 'es') || nombreEl(a).localeCompare(nombreEl(b), 'es'));
+    sheet(`<h2>${id ? 'Conexión' : 'Nueva conexión'} desde ${esc(from ? icono(from) + ' ' + nombreEl(from) : '?')}</h2>
+      <div class="field"><label for="f-ha">Hasta</label><select id="f-ha"><option value="">— elige —</option>${cand.map(e => `<option value="${esc(e.id)}"${e.id === d.hasta ? ' selected' : ''}>${esc(icono(e) + ' ' + nombreEl(e) + ' · ' + plantaNombre(e.planta) + (e.estancia ? ' · ' + e.estancia : ''))}</option>`).join('')}</select></div>
+      <div class="field"><label for="f-tt">Tipo</label><select id="f-tt">${opts(sis(s).tramos, d.tipo)}</select></div>
+      <div class="field"><label for="f-notas">Notas</label><textarea id="f-notas" placeholder="Por dónde va, diámetro, material…">${esc(d.notas)}</textarea></div>
+      ${actions(id)}`);
+    const back = () => reopenEl(d.desde);
+    wireDel('tramos', id, back);
+    $('#cancel').onclick = $('#scrim').onclick = back;
+    $('#save').onclick = () => { const h = $('#f-ha').value; if (!h) return msg('Elige el otro extremo de la conexión.'); write('tramos', id, { desde: d.desde, hasta: h, sistema: s, tipo: $('#f-tt').value, notas: $('#f-notas').value.trim() }, back); };
+  }
+
+  function openNota(d, id, after) {
+    const sysOpts = [...SIS_KEYS.map(k => [k, SISTEMAS[k].corto]), ['cuadro', 'Cuadro eléctrico'], ['general', 'General']];
+    const fillEls = () => { const s = $('#f-sis').value; const els = casa.elementos.filter(e => e.sistema === s); $('#f-el').innerHTML = `<option value="">— ninguno —</option>` + els.map(e => `<option value="${esc(e.id)}"${e.id === d.elemento ? ' selected' : ''}>${esc(icono(e) + ' ' + nombreEl(e) + ' · ' + plantaNombre(e.planta))}</option>`).join(''); $('#f-el').disabled = !els.length; };
+    sheet(`<h2>${id ? 'Anotación' : 'Nueva anotación'}</h2>
+      <div class="grid2"><div class="field"><label for="f-fe">Fecha</label><input id="f-fe" type="date" value="${esc(d.fecha)}"></div>
+      <div class="field"><label for="f-sis">Sistema</label><select id="f-sis">${sysOpts.map(([k, l]) => `<option value="${k}"${k === d.sistema ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select></div></div>
+      <div class="field"><label for="f-el">Elemento</label><select id="f-el"></select></div>
+      <div class="field"><label for="f-tx">Qué se hizo / qué pasó</label><textarea id="f-tx" placeholder="Revisión anual de la caldera, cambio de purgador, fuga en…">${esc(d.texto)}</textarea></div>
+      <div class="grid2"><div class="field"><label for="f-qu">Quién</label><input id="f-qu" value="${esc(d.quien)}" list="dl-qu"><datalist id="dl-qu">${[...new Set(casa.historial.map(h => h.quien).filter(Boolean))].map(s => `<option value="${esc(s)}">`).join('')}</datalist></div>
+      <div class="field"><label for="f-co">Coste (€)</label><input id="f-co" inputmode="decimal" value="${esc(d.coste)}"></div></div>
+      <label class="check"><input type="checkbox" id="f-rv"${d.revision ? ' checked' : ''}> Cuenta como revisión del elemento (actualiza su «última revisión»)</label>
+      ${actions(id)}`);
+    fillEls(); $('#f-sis').onchange = fillEls;
+    const back = after || closeSheet;
+    wireDel('historial', id, back);
+    $('#cancel').onclick = $('#scrim').onclick = back;
+    $('#save').onclick = () => {
+      const data = { fecha: $('#f-fe').value || hoy(), sistema: $('#f-sis').value, elemento: $('#f-el').value, texto: $('#f-tx').value.trim(), quien: $('#f-qu').value.trim(), coste: $('#f-co').value.trim(), revision: $('#f-rv').checked };
+      if (!data.texto) return msg('Escribe qué se hizo.');
+      if (data.revision && data.elemento) { const e = elem(data.elemento); if (e && (!e.ultimaRevision || e.ultimaRevision < data.fecha)) { e.ultimaRevision = data.fecha; if (e.estado === 'revisar') e.estado = 'ok'; } }
+      write('historial', id, data, back);
+    };
+  }
+
+  /* ---------- fotos ---------- */
+  async function fotoUrl(name) {
+    if (fotoUrls[name]) return fotoUrls[name];
+    return fotoUrls[name] = URL.createObjectURL(await leeArchivo(name));
+  }
+  function fotosWidget(box, list, prefijo) {
+    const draw = () => {
+      box.innerHTML = list.map((f, i) => `<span class="foto" data-i="${i}" role="button" tabindex="0" aria-label="Ver foto"><img alt="">${prefijo ? `<button class="rm" data-rm="${i}" aria-label="Quitar foto">✕</button>` : ''}</span>`).join('') +
+        (prefijo ? `<label class="addfoto">+ Foto<input type="file" accept="image/*" multiple></label>` : '');
+      box.querySelectorAll('.foto').forEach(s => { const n = list[+s.dataset.i]; fotoUrl(n).then(u => { const im = s.querySelector('img'); if (im) im.src = u; }).catch(() => { s.title = 'No se encuentra ' + n; }); s.onclick = ev => { if (ev.target.closest('.rm')) return; lightbox(n); }; });
+      box.querySelectorAll('[data-rm]').forEach(b => b.onclick = ev => { ev.stopPropagation(); list.splice(+b.dataset.rm, 1); draw(); });
+      const inp = box.querySelector('input[type=file]');
+      if (inp) inp.onchange = async () => {
+        for (const f of inp.files) {
+          try { box.querySelector('.addfoto').firstChild.textContent = 'Guardando…'; list.push(await guardaFoto(f, prefijo)); }
+          catch (e) { msg('No se pudo guardar la foto: ' + esc(e.message)); }
+        }
+        draw();
+      };
+    };
+    draw();
+  }
+  async function guardaFoto(file, prefijo) {
+    // Reducir antes de guardar: una foto de móvil pesa 4–8 MB y en una carpeta de Drive se nota mucho.
+    let blob = file;
+    try {
+      const bmp = await createImageBitmap(file);
+      const k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+      const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+      c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+      blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.85)) || file;
+    } catch (e) { }
+    const name = `fotos/${prefijo}-${uid()}.jpg`;
+    await escribe(name, blob);
+    return name;
+  }
+  function lightbox(name) {
+    const lb = $('#lightbox'); lb.innerHTML = `<div class="lb"><img alt=""><button class="btn">Cerrar</button></div>`; lb.hidden = false; marca();
+    fotoUrl(name).then(u => lb.querySelector('img').src = u);
+    lb.onclick = () => { lb.hidden = true; lb.innerHTML = ''; };
+  }
+
+  /* ---------- carpeta (File System Access API) ---------- */
+  function idb() {
+    return new Promise((res, rej) => { const r = indexedDB.open('homemanager-fs', 1); r.onupgradeneeded = () => r.result.createObjectStore('h'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+  }
+  async function rememberRoot(h) { try { const d = await idb(); d.transaction('h', 'readwrite').objectStore('h').put(h, 'root'); } catch (e) { } }
+  async function recallRoot() { try { const d = await idb(); return await new Promise(r => { const q = d.transaction('h').objectStore('h').get('root'); q.onsuccess = () => r(q.result || null); q.onerror = () => r(null); }); } catch (e) { return null; } }
+  async function permiso(h, pedir) { const mode = 'readwrite'; if (await h.queryPermission({ mode }) === 'granted') return true; return pedir && (await h.requestPermission({ mode })) === 'granted'; }
+
+  async function dirDe(path, crear) { const parts = path.split('/'); let d = root; for (const p of parts.slice(0, -1)) d = await d.getDirectoryHandle(p, { create: !!crear }); return [d, parts[parts.length - 1]]; }
+  async function leeArchivo(path) { const [d, n] = await dirDe(path); return (await d.getFileHandle(n)).getFile(); }
+  async function escribe(path, data) { const [d, n] = await dirDe(path, true); const fh = await d.getFileHandle(n, { create: true }); const w = await fh.createWritable(); await w.write(data); await w.close(); }
+
+  async function pickRoot() {
+    if (pickerBusy) return; pickerBusy = true;
+    try {
+      const h = await window.showDirectoryPicker({ mode: 'readwrite', id: 'homemanager', startIn: 'documents' });
+      root = h; await rememberRoot(h); await cargaCasa();
+    } catch (e) { if (e.name !== 'AbortError') setStatus('No se pudo abrir la carpeta: ' + e.message, true); }
+    finally { pickerBusy = false; }
+  }
+
+  function normaliza(c) {
+    c = c && typeof c === 'object' ? c : {};
+    c.schemaVersion = c.schemaVersion || 1;
+    c.casa = c.casa || { nombre: 'Mi casa' };
+    c.plantas = Array.isArray(c.plantas) ? c.plantas : [];
+    c.electrico = c.electrico || {};
+    ELEC.forEach(k => { if (!Array.isArray(c.electrico[k])) c.electrico[k] = []; });
+    ['elementos', 'tramos', 'historial'].forEach(k => { if (!Array.isArray(c[k])) c[k] = []; });
+    return c;
+  }
+
+  async function cargaCasa(aviso) {
+    setStatus('Leyendo la carpeta…'); setSync('Carpeta: ' + root.name);
+    let f;
+    try { f = await (await root.getFileHandle('casa.json')).getFile(); }
+    catch (e) {
+      if (e.name !== 'NotFoundError') { setStatus('No se pudo leer casa.json: ' + e.message, true); return; }
+      casa = null; $('#tabs').hidden = true; setStatus('');
+      const v = $('#view');
+      v.innerHTML = `<div class="hero"><h2>La carpeta «${esc(root.name)}» no tiene casa.json</h2><p>Puedes empezar una casa nueva aquí (se crearán <code>casa.json</code>, <code>planos/</code> y <code>fotos/</code>), o elegir la carpeta donde ya la tienes.</p><div class="row-b"><button class="btn primary" id="nueva">Crear casa aquí</button><button class="btn" id="otra">Elegir otra carpeta</button></div></div>`;
+      $('#nueva').onclick = async () => { casa = normaliza({ casa: { nombre: 'Mi casa' } }); await escribe('casa.json', JSON.stringify(casa, null, 1)); await cargaCasa(); go('ajustes'); };
+      $('#otra').onclick = pickRoot;
+      return;
+    }
+    try { casa = normaliza(JSON.parse(await f.text())); }
+    catch (e) { setStatus('casa.json está dañado y no se puede leer (' + e.message + '). Recupera una copia de la carpeta «copias».', true); return; }
+    lastMod = f.lastModified; backedUp = false;
+    Object.keys(planUrls).forEach(k => { if (planUrls[k]) URL.revokeObjectURL(planUrls[k]); delete planUrls[k]; });
+    setStatus(''); setSync('Carpeta: ' + root.name);
+    if (aviso) flash('Datos releídos de la carpeta.');
+    if (view !== 'cuadro') marca();
+    render();
+  }
+
+  /* ---------- guardado ---------- */
+  let saveTimer = null, saving = false, dirty = false, backedUp = false;
+  const horaTxt = () => new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  function save() { dirty = true; setSync('Guardando…'); clearTimeout(saveTimer); saveTimer = setTimeout(flush, 400); }
+  async function flush() {
+    if (saving) { saveTimer = setTimeout(flush, 300); return; }
+    if (!dirty || !casa) return;
+    saving = true; dirty = false;
+    try {
+      if (!(await permiso(root, false))) throw new Error('el navegador ha retirado el permiso de escritura; pulsa «Releer de la carpeta» en Ajustes');
+      if (!backedUp) await copia();
+      casa.actualizado = new Date().toISOString();
+      await escribe('casa.json', JSON.stringify(casa, null, 1));
+      lastMod = (await (await root.getFileHandle('casa.json')).getFile()).lastModified;
+      setSync(`Guardado ${horaTxt()} · ${root.name}`);
+    } catch (e) {
+      dirty = true; setSync('Sin guardar', true);
+      setStatus('No se pudo guardar casa.json: ' + e.message + '. Los cambios siguen en pantalla; vuelve a intentarlo.', true);
+    } finally { saving = false; }
+  }
+  // Una copia por sesión antes de la primera escritura; se guardan las 20 más recientes.
+  async function copia() {
+    try {
+      const txt = await (await root.getFileHandle('casa.json')).getFile().then(f => f.text());
+      const st = new Date().toISOString().replace(/[-:]/g, '').replace('T', '-').slice(0, 13);
+      await escribe(`copias/casa-${st}.json`, txt);
+      const d = await root.getDirectoryHandle('copias');
+      const names = []; for await (const [n] of d.entries()) if (/^casa-.*\.json$/.test(n)) names.push(n);
+      names.sort(); for (const n of names.slice(0, Math.max(0, names.length - 20))) await d.removeEntry(n);
+    } catch (e) { }
+    backedUp = true;
+  }
+  window.addEventListener('beforeunload', ev => { if (dirty || saving) { flush(); ev.preventDefault(); ev.returnValue = ''; } });
+  // Si otro dispositivo ha cambiado casa.json (carpeta sincronizada), se relee al volver a la app.
+  async function compruebaExterno() {
+    if (!root || !casa || dirty || saving || !$('#editor').hidden) return;
+    try { const f = await (await root.getFileHandle('casa.json')).getFile(); if (f.lastModified > lastMod + 1500) await cargaCasa(true); } catch (e) { }
+  }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') compruebaExterno(); else if (dirty) flush(); });
+
+  /* ---------- arranque ---------- */
+  function bienvenida(h) {
+    $('#tabs').hidden = true;
+    $('#view').innerHTML = `<div class="hero"><h2>Infraestructura de casa</h2>
+      <p>Cuadro eléctrico, calefacción, agua, desagües, gas, red… sobre los planos de tu casa. Los datos se guardan en una carpeta tuya (por ejemplo, dentro de Google Drive), nunca en esta app.</p>
+      <div class="row-b">${h ? `<button class="btn primary" id="abrir">Abrir «${esc(h.name)}»</button><button class="btn" id="elegir">Elegir otra carpeta</button>` : `<button class="btn primary" id="elegir">📁 Elegir carpeta</button>`}</div></div>`;
+    $('#elegir').onclick = pickRoot;
+    if (h) $('#abrir').onclick = async () => { try { if (await permiso(h, true)) { root = h; await cargaCasa(); } else setStatus('Sin permiso no puedo leer la carpeta. Vuelve a pulsar y acepta.', true); } catch (e) { setStatus('No se pudo abrir la carpeta: ' + e.message, true); } };
+  }
+  async function arranque() {
+    if (!('showDirectoryPicker' in window)) {
+      $('#view').innerHTML = `<div class="hero"><h2>Este navegador no puede abrir carpetas</h2><p>La app guarda los datos en una carpeta tuya mediante la API de acceso a archivos, que tienen Chrome y Edge (escritorio y Android). Ábrela con uno de ellos.</p></div>`;
+      return;
+    }
+    const h = await recallRoot();
+    if (h) { try { if (await permiso(h, false)) { root = h; await cargaCasa(); return; } } catch (e) { } }
+    bienvenida(h);
+  }
+
+  /* ---------- versión (la escribe sw.js) ---------- */
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      const pide = () => { const c = navigator.serviceWorker.controller; if (!c) return; const ch = new MessageChannel(); ch.port1.onmessage = e => { const b = $('#ver'); b.hidden = false; b.textContent = e.data; }; c.postMessage('version', [ch.port2]); };
+      pide(); navigator.serviceWorker.addEventListener('controllerchange', pide);
+      $('#ver').onclick = () => { if ($('#ver').classList.contains('new')) location.reload(); else reg.update().then(() => { if (reg.installing || reg.waiting) { $('#ver').classList.add('new'); $('#ver').textContent = 'Nueva versión · recargar'; } else flash('Ya tienes la última versión.'); }); };
+    }).catch(() => { });
+  }
+
+  arranque();
+})();
+</script>
+</body>
+</html>

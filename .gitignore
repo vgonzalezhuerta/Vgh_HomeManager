@@ -1,0 +1,9 @@
+# Los datos de la casa viven en la carpeta que elige el usuario, nunca en el repositorio.
+casa.json
+casa-*.json
+planos/
+fotos/
+copias/
+*.jpg
+*.jpeg
+.DS_Store
